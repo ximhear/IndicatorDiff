@@ -14,8 +14,11 @@ nonisolated struct StoredURL: Codable, Sendable, Hashable {
         defer { if didStart { url.stopAccessingSecurityScopedResource() } }
         bookmarkLog.log("bookmark.create start didStart=\(didStart) path=\(url.path, privacy: .public)")
         do {
+            // Our entitlement is user-selected.read-only — the bookmark must
+            // declare read-only scope too, otherwise the API tries to open the
+            // file read-write and the sandbox returns EPERM.
             let data = try url.bookmarkData(
-                options: [.withSecurityScope],
+                options: [.withSecurityScope, .securityScopeAllowOnlyReadAccess],
                 includingResourceValuesForKeys: nil,
                 relativeTo: nil
             )
