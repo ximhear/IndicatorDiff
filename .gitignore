@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+*.xcuserdatad
+xcuserdata/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+Package.pins
+# Keep Package.resolved committed so builds reproduce.
+!**/xcshareddata/swiftpm/Package.resolved
+
+# Test data (too large for git; grab from upstream data pipeline)
+*.parquet

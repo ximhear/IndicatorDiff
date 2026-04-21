@@ -6,8 +6,23 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		ECDB0010000000000000DB01 /* DuckDB in Frameworks */ = {isa = PBXBuildFile; productRef = ECDB0030000000000000DB03 /* DuckDB */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		ECTS0080000000000000TS08 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = EC32EF262F977A770097682C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = EC32EF2D2F977A770097682C;
+			remoteInfo = IndicatorDiff;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		EC32EF2E2F977A770097682C /* IndicatorDiff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = IndicatorDiff.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ECTS0010000000000000TS01 /* IndicatorDiffTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = IndicatorDiffTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +31,23 @@
 			path = IndicatorDiff;
 			sourceTree = "<group>";
 		};
+		ECTS0020000000000000TS02 /* IndicatorDiffTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = IndicatorDiffTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		EC32EF2B2F977A770097682C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				ECDB0010000000000000DB01 /* DuckDB in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ECTS0050000000000000TS05 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +61,7 @@
 			isa = PBXGroup;
 			children = (
 				EC32EF302F977A770097682C /* IndicatorDiff */,
+				ECTS0020000000000000TS02 /* IndicatorDiffTests */,
 				EC32EF2F2F977A770097682C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				EC32EF2E2F977A770097682C /* IndicatorDiff.app */,
+				ECTS0010000000000000TS01 /* IndicatorDiffTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -65,10 +95,34 @@
 			);
 			name = IndicatorDiff;
 			packageProductDependencies = (
+				ECDB0030000000000000DB03 /* DuckDB */,
 			);
 			productName = IndicatorDiff;
 			productReference = EC32EF2E2F977A770097682C /* IndicatorDiff.app */;
 			productType = "com.apple.product-type.application";
+		};
+		ECTS0030000000000000TS03 /* IndicatorDiffTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = ECTS00B0000000000000TS0B /* Build configuration list for PBXNativeTarget "IndicatorDiffTests" */;
+			buildPhases = (
+				ECTS0040000000000000TS04 /* Sources */,
+				ECTS0050000000000000TS05 /* Frameworks */,
+				ECTS0060000000000000TS06 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				ECTS0070000000000000TS07 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				ECTS0020000000000000TS02 /* IndicatorDiffTests */,
+			);
+			name = IndicatorDiffTests;
+			packageProductDependencies = (
+			);
+			productName = IndicatorDiffTests;
+			productReference = ECTS0010000000000000TS01 /* IndicatorDiffTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -83,6 +137,10 @@
 					EC32EF2D2F977A770097682C = {
 						CreatedOnToolsVersion = 26.4.1;
 					};
+					ECTS0030000000000000TS03 = {
+						CreatedOnToolsVersion = 26.4.1;
+						TestTargetID = EC32EF2D2F977A770097682C;
+					};
 				};
 			};
 			buildConfigurationList = EC32EF292F977A770097682C /* Build configuration list for PBXProject "IndicatorDiff" */;
@@ -94,18 +152,29 @@
 			);
 			mainGroup = EC32EF252F977A770097682C;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				ECDB0020000000000000DB02 /* XCRemoteSwiftPackageReference "duckdb-swift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EC32EF2F2F977A770097682C /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				EC32EF2D2F977A770097682C /* IndicatorDiff */,
+				ECTS0030000000000000TS03 /* IndicatorDiffTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		EC32EF2C2F977A770097682C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		ECTS0060000000000000TS06 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +191,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		ECTS0040000000000000TS04 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		ECTS0070000000000000TS07 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = EC32EF2D2F977A770097682C /* IndicatorDiff */;
+			targetProxy = ECTS0080000000000000TS08 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		EC32EF372F977A780097682C /* Debug */ = {
@@ -250,14 +334,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = IndicatorDiff/IndicatorDiff.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = WD3LPJ2STX;
-				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -282,14 +365,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = IndicatorDiff/IndicatorDiff.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = WD3LPJ2STX;
-				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -306,6 +388,50 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		ECTS0090000000000000TS09 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WD3LPJ2STX;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = g.IndicatorDiffTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/IndicatorDiff.app/Contents/MacOS/IndicatorDiff";
+			};
+			name = Debug;
+		};
+		ECTS00A0000000000000TS0A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = WD3LPJ2STX;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = g.IndicatorDiffTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/IndicatorDiff.app/Contents/MacOS/IndicatorDiff";
 			};
 			name = Release;
 		};
@@ -330,7 +456,35 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		ECTS00B0000000000000TS0B /* Build configuration list for PBXNativeTarget "IndicatorDiffTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				ECTS0090000000000000TS09 /* Debug */,
+				ECTS00A0000000000000TS0A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		ECDB0020000000000000DB02 /* XCRemoteSwiftPackageReference "duckdb-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/duckdb/duckdb-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		ECDB0030000000000000DB03 /* DuckDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ECDB0020000000000000DB02 /* XCRemoteSwiftPackageReference "duckdb-swift" */;
+			productName = DuckDB;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EC32EF262F977A770097682C /* Project object */;
 }
