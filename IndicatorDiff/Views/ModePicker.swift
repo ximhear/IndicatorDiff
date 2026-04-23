@@ -16,9 +16,10 @@ struct ModePicker: View {
         )) {
             Text("Files").tag(AppMode.files)
             Text("Folders").tag(AppMode.folders)
+            Text("View").tag(AppMode.viewer)
         }
         .pickerStyle(.segmented)
         .labelsHidden()
-        .frame(width: 160)
+        .frame(width: 220)
     }
 }

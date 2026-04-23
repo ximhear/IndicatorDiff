@@ -3,7 +3,38 @@ import Observation
 
 enum FileSlotID: Sendable { case a, b }
 
-enum AppMode: Sendable, Equatable { case files, folders }
+enum AppMode: Sendable, Equatable { case files, folders, viewer }
+
+enum ViewerLoadState: Sendable {
+    case idle
+    case loading(URL)
+    case loaded(ParquetDataset)
+    case failed(URL, message: String)
+
+    var url: URL? {
+        switch self {
+        case .idle: return nil
+        case .loading(let u): return u
+        case .loaded(let ds): return ds.sourceURL
+        case .failed(let u, _): return u
+        }
+    }
+
+    var dataset: ParquetDataset? {
+        if case .loaded(let ds) = self { return ds }
+        return nil
+    }
+
+    var isLoading: Bool {
+        if case .loading = self { return true }
+        return false
+    }
+
+    var failureMessage: String? {
+        if case .failed(_, let msg) = self { return msg }
+        return nil
+    }
+}
 
 enum FileSlotState: Sendable {
     case idle
@@ -86,6 +117,14 @@ final class DiffStore {
     private var folderBScope: URL?
     private var fileAScope: URL?
     private var fileBScope: URL?
+
+    // Viewer-mode state
+    var viewerFolderSlot: FolderSlotState = .idle
+    var viewerFiles: [URL] = []
+    var viewerSearchQuery: String = ""
+    var viewerLoadState: ViewerLoadState = .idle
+    private var viewerFolderScope: URL?
+    private var viewerLoadTask: Task<Void, Never>?
 
     // Shared tolerance/view state
     var tolerance: Tolerance = .strict
@@ -219,6 +258,68 @@ final class DiffStore {
         isBatchComparing = false
     }
 
+    // MARK: - Viewer mode
+
+    func setViewerFolder(_ url: URL) {
+        viewerFolderScope?.stopAccessingSecurityScopedResource()
+        viewerFolderScope = url.startAccessingSecurityScopedResource() ? url : nil
+        viewerFolderSlot = .scanning(url)
+        viewerFiles = []
+        viewerSearchQuery = ""
+        viewerLoadState = .idle
+        viewerLoadTask?.cancel()
+        Task { await self.scanViewerFolder(url: url) }
+    }
+
+    func clearViewerFolder() {
+        viewerFolderScope?.stopAccessingSecurityScopedResource()
+        viewerFolderScope = nil
+        viewerFolderSlot = .idle
+        viewerFiles = []
+        viewerSearchQuery = ""
+        viewerLoadState = .idle
+        viewerLoadTask?.cancel()
+    }
+
+    func selectViewerFile(_ url: URL) {
+        viewerLoadTask?.cancel()
+        viewerLoadState = .loading(url)
+        viewerLoadTask = Task { await self.loadViewerFile(url: url) }
+    }
+
+    var viewerFilteredFiles: [URL] {
+        let q = viewerSearchQuery.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !q.isEmpty else { return viewerFiles }
+        return viewerFiles.filter { $0.lastPathComponent.lowercased().contains(q) }
+    }
+
+    private func scanViewerFolder(url: URL) async {
+        do {
+            let files = try await Task.detached(priority: .userInitiated) {
+                try FolderScanner.listTabularFiles(folder: url)
+            }.value
+            viewerFiles = files
+            viewerFolderSlot = .scanned(url, entryCount: files.count)
+        } catch {
+            let message = (error as? LocalizedError)?.errorDescription ?? String(describing: error)
+            viewerFolderSlot = .failed(url, message: message)
+        }
+    }
+
+    private func loadViewerFile(url: URL) async {
+        do {
+            let dataset = try await Task.detached(priority: .userInitiated) {
+                try await ParquetLoader.load(url: url)
+            }.value
+            guard !Task.isCancelled else { return }
+            viewerLoadState = .loaded(dataset)
+        } catch {
+            guard !Task.isCancelled else { return }
+            let message = (error as? LocalizedError)?.errorDescription ?? String(describing: error)
+            viewerLoadState = .failed(url, message: message)
+        }
+    }
+
     // MARK: - History restore
 
     func restore(_ entry: HistoryEntry) {
@@ -270,6 +371,8 @@ final class DiffStore {
                 pairTask?.cancel()
                 pairTask = Task { await self.computeDiff(forPairID: id) }
             }
+        case .viewer:
+            break
         }
     }
 

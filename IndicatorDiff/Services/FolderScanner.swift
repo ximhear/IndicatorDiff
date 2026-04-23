@@ -72,6 +72,40 @@ enum FolderScanner {
         return result
     }
 
+    /// Lists every `.parquet` / `.csv` file in a folder, sorted by filename.
+    /// Unlike `scan(folder:)` this does NOT deduplicate by stem — both a
+    /// `foo.parquet` and a `foo.csv` sibling are returned separately.
+    nonisolated static func listTabularFiles(folder: URL) throws -> [URL] {
+        let fm = FileManager.default
+        var isDir: ObjCBool = false
+        guard fm.fileExists(atPath: folder.path, isDirectory: &isDir), isDir.boolValue else {
+            throw FolderScanError.notADirectory(folder)
+        }
+
+        let didStartScope = folder.startAccessingSecurityScopedResource()
+        defer { if didStartScope { folder.stopAccessingSecurityScopedResource() } }
+
+        let contents: [URL]
+        do {
+            contents = try fm.contentsOfDirectory(
+                at: folder,
+                includingPropertiesForKeys: [.isRegularFileKey],
+                options: [.skipsHiddenFiles, .skipsPackageDescendants, .skipsSubdirectoryDescendants]
+            )
+        } catch {
+            throw FolderScanError.cannotEnumerate(folder, underlying: String(describing: error))
+        }
+
+        let filtered = contents.filter { url in
+            let values = try? url.resourceValues(forKeys: [.isRegularFileKey])
+            guard values?.isRegularFile ?? false else { return false }
+            return TableSource.infer(from: url) != nil
+        }
+        return filtered.sorted {
+            $0.lastPathComponent.localizedStandardCompare($1.lastPathComponent) == .orderedAscending
+        }
+    }
+
     /// Cross-joins two scanned folders into `FilePair` entries, sorted by stem.
     nonisolated static func pair(
         folderA: [String: StemEntry],

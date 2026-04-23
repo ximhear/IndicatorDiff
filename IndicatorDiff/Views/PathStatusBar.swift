@@ -23,6 +23,13 @@ struct PathStatusBar: View {
                     Divider().frame(height: 14)
                     PathSlotRow(label: "pair B", color: .purple, url: pair.fileB)
                 }
+
+            case .viewer:
+                PathSlotRow(label: "folder", color: .teal, url: store.viewerFolderSlot.url)
+                if let viewing = store.viewerLoadState.url {
+                    Divider().frame(height: 14)
+                    PathSlotRow(label: "viewing", color: .indigo, url: viewing)
+                }
             }
             Spacer(minLength: 0)
         }

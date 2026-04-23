@@ -53,6 +53,9 @@ struct ContentView: View {
                 EmptyStateView(context: .folders)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+        case .viewer:
+            ViewerModeView()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 

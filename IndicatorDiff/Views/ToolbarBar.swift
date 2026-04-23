@@ -21,26 +21,30 @@ struct ToolbarBar: View {
             case .folders:
                 FolderSlotButton(slot: .a, state: store.folderSlotA)
                 FolderSlotButton(slot: .b, state: store.folderSlotB)
+            case .viewer:
+                ViewerFolderSlotButton(state: store.viewerFolderSlot)
             }
 
-            Divider().frame(height: 28)
+            if store.mode != .viewer {
+                Divider().frame(height: 28)
 
-            Picker("", selection: Binding(
-                get: { store.tolerance.isStrict ? 0 : 1 },
-                set: { newValue in
-                    store.tolerance = newValue == 0 ? .strict : .tolerant(abs: store.toleranceAbs, rel: store.toleranceRel)
-                    store.applyToleranceChange()
+                Picker("", selection: Binding(
+                    get: { store.tolerance.isStrict ? 0 : 1 },
+                    set: { newValue in
+                        store.tolerance = newValue == 0 ? .strict : .tolerant(abs: store.toleranceAbs, rel: store.toleranceRel)
+                        store.applyToleranceChange()
+                    }
+                )) {
+                    Text("Strict").tag(0)
+                    Text("Tolerant").tag(1)
                 }
-            )) {
-                Text("Strict").tag(0)
-                Text("Tolerant").tag(1)
-            }
-            .pickerStyle(.segmented)
-            .frame(width: 170)
-            .labelsHidden()
+                .pickerStyle(.segmented)
+                .frame(width: 170)
+                .labelsHidden()
 
-            Toggle("diff만 보기", isOn: $bindable.showOnlyDiffs)
-                .toggleStyle(.switch)
+                Toggle("diff만 보기", isOn: $bindable.showOnlyDiffs)
+                    .toggleStyle(.switch)
+            }
 
             Spacer()
 
@@ -52,7 +56,7 @@ struct ToolbarBar: View {
                     .font(.callout)
             }
 
-            if let result = store.result {
+            if store.mode != .viewer, let result = store.result {
                 summaryBadges(for: result)
             }
         }
