@@ -7,6 +7,10 @@ struct ViewerTableView: View {
         VStack(spacing: 0) {
             header
             Divider()
+            if let ds = store.viewerLoadState.dataset {
+                columnFilterBar(for: ds)
+                Divider()
+            }
             content
         }
     }
@@ -40,6 +44,46 @@ struct ViewerTableView: View {
         .padding(.vertical, 8)
     }
 
+    private func columnFilterBar(for ds: ParquetDataset) -> some View {
+        @Bindable var bindable = store
+        let visible = visibleColumns(for: ds)
+        let truncated = visible.count < filteredColumns(for: ds).count
+        return HStack(spacing: 8) {
+            Image(systemName: "rectangle.split.3x1")
+                .foregroundStyle(.secondary)
+                .font(.caption)
+            TextField("컬럼 이름 검색…", text: $bindable.viewerColumnQuery)
+                .textFieldStyle(.plain)
+                .font(.callout)
+                .frame(maxWidth: 240)
+            if !store.viewerColumnQuery.isEmpty {
+                Button {
+                    store.viewerColumnQuery = ""
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+            Divider().frame(height: 14)
+            Text("\(visible.count)/\(ds.columnNames.count) cols")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+            if truncated {
+                Toggle(isOn: $bindable.viewerShowAllColumns) {
+                    Text("Show all")
+                        .font(.caption)
+                }
+                .toggleStyle(.switch)
+                .controlSize(.mini)
+                .help("\(ds.columnNames.count)개 전부 표시 — 매우 느릴 수 있음")
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+    }
+
     private var sourceBadge: String {
         guard let url = store.viewerLoadState.url else { return "" }
         return TableSource.infer(from: url)?.displayName ?? ""
@@ -69,8 +113,21 @@ struct ViewerTableView: View {
                 subtitle: message
             )
         case .loaded(let ds):
-            DataTable(dataset: ds)
+            DataTable(dataset: ds, columns: visibleColumns(for: ds))
         }
+    }
+
+    private func filteredColumns(for ds: ParquetDataset) -> [String] {
+        let q = store.viewerColumnQuery.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !q.isEmpty else { return ds.columnNames }
+        return ds.columnNames.filter { $0.lowercased().contains(q) }
+    }
+
+    private func visibleColumns(for ds: ParquetDataset) -> [String] {
+        let filtered = filteredColumns(for: ds)
+        if store.viewerShowAllColumns { return filtered }
+        if filtered.count <= store.viewerColumnLimit { return filtered }
+        return Array(filtered.prefix(store.viewerColumnLimit))
     }
 
     private func placeholder(icon: String, title: String, subtitle: String?) -> some View {
@@ -93,14 +150,13 @@ struct ViewerTableView: View {
     }
 }
 
-/// Row = a single row index. `ParquetDataset` is captured by the closures
-/// so we don't materialize a dictionary per row up-front.
 private struct DataRowID: Identifiable, Hashable {
     let id: Int
 }
 
 private struct DataTable: View {
     let dataset: ParquetDataset
+    let columns: [String]
 
     private var rows: [DataRowID] {
         (0..<dataset.rowCount).map { DataRowID(id: $0) }
@@ -108,7 +164,7 @@ private struct DataTable: View {
 
     var body: some View {
         Table(rows) {
-            TableColumnForEach(dataset.columnNames, id: \.self) { column in
+            TableColumnForEach(columns, id: \.self) { column in
                 TableColumn(Text(column).font(.system(.caption, design: .monospaced).weight(.semibold))) { row in
                     cell(row: row.id, column: column)
                 }
@@ -119,11 +175,12 @@ private struct DataTable: View {
     @ViewBuilder
     private func cell(row: Int, column: String) -> some View {
         let v = dataset.value(row: row, column: column)
-        Text(v.displayString)
+        let s = v.displayString
+        Text(s)
             .font(.system(.callout, design: .monospaced))
             .foregroundStyle(v.isNull ? Color.secondary : Color.primary)
             .lineLimit(1)
             .truncationMode(.middle)
-            .help(v.displayString)
+            .help(s)
     }
 }

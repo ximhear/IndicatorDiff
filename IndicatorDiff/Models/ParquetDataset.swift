@@ -3,7 +3,9 @@ import Foundation
 nonisolated struct ParquetDataset: Sendable {
     let sourceURL: URL
     let source: TableSource
-    let dateColumn: String
+    /// Detected date column name. `nil` when the file has no recognizable
+    /// date column — viewer mode still works, but diff is not possible.
+    let dateColumn: String?
     /// Row-order date values. `nil` entries are rows where the date column was null (skipped from index).
     let dates: [Date]
     /// Maps date → first row index that carries that date.

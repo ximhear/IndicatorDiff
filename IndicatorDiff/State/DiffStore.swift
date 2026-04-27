@@ -123,6 +123,13 @@ final class DiffStore {
     var viewerFiles: [URL] = []
     var viewerSearchQuery: String = ""
     var viewerLoadState: ViewerLoadState = .idle
+    /// Substring filter applied to columns shown in the viewer table.
+    var viewerColumnQuery: String = ""
+    /// When the table has more than this many columns, render only the first N
+    /// (after column-search filtering) until the user opts in to "show all".
+    var viewerColumnLimit: Int = 80
+    /// Set to true to bypass `viewerColumnLimit` for the current dataset.
+    var viewerShowAllColumns: Bool = false
     private var viewerFolderScope: URL?
     private var viewerLoadTask: Task<Void, Never>?
 
@@ -284,6 +291,10 @@ final class DiffStore {
     func selectViewerFile(_ url: URL) {
         viewerLoadTask?.cancel()
         viewerLoadState = .loading(url)
+        // Reset column visibility per-file so a wide previous file doesn't
+        // surprise the user with a hidden-column state on a narrow new file.
+        viewerColumnQuery = ""
+        viewerShowAllColumns = false
         viewerLoadTask = Task { await self.loadViewerFile(url: url) }
     }
 
@@ -383,6 +394,11 @@ final class DiffStore {
             let dataset = try await Task.detached(priority: .userInitiated) {
                 try await ParquetLoader.load(url: url)
             }.value
+            // For files-mode diff we need a date column. Surface the issue
+            // immediately instead of producing an empty diff later.
+            guard dataset.dateColumn != nil else {
+                throw LoadError.dateColumnNotFound(candidates: dataset.columnNames)
+            }
             switch slot {
             case .a: slotA = .loaded(dataset)
             case .b: slotB = .loaded(dataset)
@@ -514,8 +530,14 @@ final class DiffStore {
             do {
                 let datasetA = try await ParquetLoader.load(url: urlA)
                 try Task.checkCancellation()
+                guard datasetA.dateColumn != nil else {
+                    throw LoadError.dateColumnNotFound(candidates: datasetA.columnNames)
+                }
                 let datasetB = try await ParquetLoader.load(url: urlB)
                 try Task.checkCancellation()
+                guard datasetB.dateColumn != nil else {
+                    throw LoadError.dateColumnNotFound(candidates: datasetB.columnNames)
+                }
                 let res = DiffEngine.diff(datasetA, datasetB, tolerance: tolerance)
                 return .success(PairOutcome(datasetA: datasetA, datasetB: datasetB, result: res))
             } catch {

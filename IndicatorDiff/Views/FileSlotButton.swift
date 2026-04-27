@@ -110,7 +110,7 @@ struct FileSlotButton: View {
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .font(.callout)
-                    Text("\(dataset.rowCount) rows · \(dataset.columnNames.count) cols · date: \(dataset.dateColumn)")
+                    Text("\(dataset.rowCount) rows · \(dataset.columnNames.count) cols · date: \(dataset.dateColumn ?? "—")")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }

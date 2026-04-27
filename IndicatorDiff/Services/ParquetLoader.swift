@@ -1,10 +1,18 @@
 import DuckDB
 import Foundation
+import os
+
+nonisolated private let loaderLog = Logger(subsystem: "g.IndicatorDiff", category: "loader")
 
 enum ParquetLoader {
 
+    nonisolated private static func elapsedMs(since t: DispatchTime) -> Int {
+        Int((DispatchTime.now().uptimeNanoseconds - t.uptimeNanoseconds) / 1_000_000)
+    }
+
     nonisolated static let candidateDateNames: [String] = [
-        "date", "dt", "trade_date", "tradedate", "trading_date", "날짜"
+        "date", "dt", "trade_date", "tradedate", "trading_date", "날짜",
+        "bas_dd", "trd_dd", "기준일자", "거래일", "거래일자"
     ]
 
     nonisolated static func load(
@@ -15,6 +23,9 @@ enum ParquetLoader {
         defer {
             if didStartScope { url.stopAccessingSecurityScopedResource() }
         }
+
+        let tOverall = DispatchTime.now()
+        loaderLog.log("load.start path=\(url.path, privacy: .public)")
 
         let database: Database
         let connection: Connection
@@ -27,6 +38,7 @@ enum ParquetLoader {
 
         let source = TableSource.infer(from: url) ?? .parquet
         let result: ResultSet
+        let tQuery = DispatchTime.now()
         do {
             let stmt = try PreparedStatement(
                 connection: connection,
@@ -37,13 +49,16 @@ enum ParquetLoader {
         } catch {
             throw LoadError.sqlError(String(describing: error))
         }
+        loaderLog.log("load.query \(elapsedMs(since: tQuery))ms rows=\(result.rowCount) cols=\(result.columnCount)")
 
         let rowCount = Int(result.rowCount)
         guard rowCount > 0 else { throw LoadError.emptyFile }
 
+        let tMaterialize = DispatchTime.now()
         var columnNames: [String] = []
         columnNames.reserveCapacity(Int(result.columnCount))
         var columns: [String: ColumnBuffer] = [:]
+        columns.reserveCapacity(Int(result.columnCount))
 
         for i in 0..<result.columnCount {
             let column = result[i]
@@ -51,8 +66,10 @@ enum ParquetLoader {
             columnNames.append(name)
             columns[name] = materialize(column: column, rowCount: rowCount)
         }
+        loaderLog.log("load.materialize \(elapsedMs(since: tMaterialize))ms cols=\(result.columnCount)")
 
-        let (dateColumnName, dateValues) = try resolveDateColumn(
+        let tDate = DispatchTime.now()
+        let resolved = resolveDateColumn(
             columns: columns,
             columnNames: columnNames,
             hint: hintDateColumn
@@ -60,22 +77,27 @@ enum ParquetLoader {
 
         var dateIndex: [Foundation.Date: Int] = [:]
         var dates: [Foundation.Date] = []
-        dates.reserveCapacity(rowCount)
         var duplicateDateCount = 0
-        for (row, maybeDate) in dateValues.enumerated() {
-            guard let d = maybeDate else { continue }
-            dates.append(d)
-            if dateIndex[d] == nil {
-                dateIndex[d] = row
-            } else {
-                duplicateDateCount += 1
+        if let resolved {
+            dates.reserveCapacity(rowCount)
+            dateIndex.reserveCapacity(rowCount)
+            for (row, maybeDate) in resolved.values.enumerated() {
+                guard let d = maybeDate else { continue }
+                dates.append(d)
+                if dateIndex[d] == nil {
+                    dateIndex[d] = row
+                } else {
+                    duplicateDateCount += 1
+                }
             }
         }
+        loaderLog.log("load.dateIndex \(elapsedMs(since: tDate))ms dateColumn=\(resolved?.name ?? "(none)", privacy: .public)")
+        loaderLog.log("load.done \(elapsedMs(since: tOverall))ms total")
 
         return ParquetDataset(
             sourceURL: url,
             source: source,
-            dateColumn: dateColumnName,
+            dateColumn: resolved?.name,
             dates: dates,
             dateIndex: dateIndex,
             duplicateDateCount: duplicateDateCount,
@@ -170,7 +192,7 @@ enum ParquetLoader {
         columns: [String: ColumnBuffer],
         columnNames: [String],
         hint: String?
-    ) throws -> (String, [Foundation.Date?]) {
+    ) -> (name: String, values: [Foundation.Date?])? {
 
         if let hint, let buf = columns[hint],
            let dates = datesForColumn(buf) {
@@ -193,7 +215,7 @@ enum ParquetLoader {
             return (name, dates)
         }
 
-        throw LoadError.dateColumnNotFound(candidates: columnNames)
+        return nil
     }
 
     nonisolated private static func datesForColumn(_ buf: ColumnBuffer) -> [Foundation.Date?]? {

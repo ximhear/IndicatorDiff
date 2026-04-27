@@ -69,13 +69,17 @@ nonisolated enum CellValue: Sendable, Hashable {
         return f
     }()
 
-    static func formatDouble(_ v: Double) -> String {
+    private static let doubleFormatter: NumberFormatter = {
         let f = NumberFormatter()
         f.locale = Locale(identifier: "en_US_POSIX")
         f.numberStyle = .decimal
         f.usesGroupingSeparator = false
         f.maximumSignificantDigits = 12
         f.minimumSignificantDigits = 1
-        return f.string(from: NSNumber(value: v)) ?? "\(v)"
+        return f
+    }()
+
+    static func formatDouble(_ v: Double) -> String {
+        doubleFormatter.string(from: NSNumber(value: v)) ?? "\(v)"
     }
 }

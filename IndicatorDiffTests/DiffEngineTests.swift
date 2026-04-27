@@ -241,7 +241,7 @@ struct DiffEngineTests {
         return ParquetDataset(
             sourceURL: URL(fileURLWithPath: "/tmp/fake.parquet"),
             source: .parquet,
-            dateColumn: "date",
+            dateColumn: "date" as String?,
             dates: dates,
             dateIndex: dateIndex,
             duplicateDateCount: 0,
